@@ -289,4 +289,4 @@ If this project helped you, please consider giving it a star! It helps the proje
 
 ---
 
-Built with ❤️ using Next.js and modern web technologies.
+Built with ❤️ using Next.js and modern web technologies!.
