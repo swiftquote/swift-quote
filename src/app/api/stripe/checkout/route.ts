@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { stripe, stripePrices } from "@/lib/stripe"
+import { stripe } from "@/lib/stripe"
+import { stripePrices } from "@/lib/stripe"
 
 export async function POST(request: NextRequest) {
   try {
