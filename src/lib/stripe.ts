@@ -1,14 +1,28 @@
 import Stripe from "stripe"
 
-const secretKey = process.env.STRIPE_SECRET_KEY
+let stripeInstance: Stripe | null = null
 
-if (!secretKey) {
-  throw new Error("Missing STRIPE_SECRET_KEY environment variable")
+export const getStripe = (): Stripe => {
+  if (!stripeInstance) {
+    const secretKey = process.env.STRIPE_SECRET_KEY
+
+    if (!secretKey) {
+      throw new Error("Missing STRIPE_SECRET_KEY environment variable")
+    }
+
+    stripeInstance = new Stripe(secretKey, {
+      apiVersion: "2024-12-18.acacia",
+    })
+  }
+
+  return stripeInstance
 }
 
-// Export the Stripe instance directly
-export const stripe = new Stripe(secretKey, {
-  apiVersion: "2024-12-18.acacia",
+// For backward compatibility, export stripe as a getter
+export const stripe = new Proxy({} as Stripe, {
+  get(target, prop) {
+    return getStripe()[prop as keyof Stripe]
+  }
 })
 
 export const stripePrices = {
@@ -21,4 +35,3 @@ export const stripePrices = {
     amount: 5999,
   },
 }
- 

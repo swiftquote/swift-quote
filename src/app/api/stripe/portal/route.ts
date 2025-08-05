@@ -1,8 +1,10 @@
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { stripe } from "@/lib/stripe" // ✅ fixed named import
+import { stripe } from "@/lib/stripe"
 
 export async function POST(request: NextRequest) {
   try {
