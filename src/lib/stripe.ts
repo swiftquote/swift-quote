@@ -21,3 +21,4 @@ export const stripePrices = {
     amount: 5999,
   },
 }
+ 
