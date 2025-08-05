@@ -1,6 +1,8 @@
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from "next/server"
 import { headers } from "next/headers"
-import { stripe } from "@/lib/stripe" // ✅ Named import
+import { stripe } from "@/lib/stripe"
 import { db } from "@/lib/db"
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
