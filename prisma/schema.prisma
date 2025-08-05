@@ -1,0 +1,181 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  profile       UserProfile?
+  quotes        Quote[]
+  subscription  Subscription?
+  payments      Payment[]
+  referrals     Referral[]
+  referredBy    Referral? @relation("Referrer")
+  
+  @@map("users")
+}
+
+model UserProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  businessName String?
+  logo        String?
+  phone       String?
+  address     String?
+  website     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("user_profiles")
+}
+
+model Quote {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String?
+  clientName  String
+  clientEmail String?
+  clientPhone String?
+  clientAddress String?
+  notes       String?
+  subtotal    Float
+  vatRate     Float    @default(0.2)
+  vatAmount   Float
+  discount    Float    @default(0)
+  total       Float
+  status      QuoteStatus @default(DRAFT)
+  shareToken  String?  @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lineItems   QuoteLineItem[]
+  
+  @@map("quotes")
+}
+
+model QuoteLineItem {
+  id          String   @id @default(cuid())
+  quoteId     String
+  description String
+  quantity    Float
+  unitPrice   Float
+  total       Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  
+  @@map("quote_line_items")
+}
+
+model Subscription {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  stripeCustomerId String?
+  stripePriceId    String?
+  stripeSubscriptionId String?
+  status      SubscriptionStatus @default(INACTIVE)
+  plan        SubscriptionPlan  @default(MONTHLY)
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments    Payment[]
+  
+  @@map("subscriptions")
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  userId      String
+  subscriptionId String?
+  stripePaymentIntentId String?
+  amount      Float
+  currency    String   @default("gbp")
+  status      PaymentStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+  
+  @@map("payments")
+}
+
+model Referral {
+  id          String   @id @default(cuid())
+  referrerId  String   @unique
+  referredId  String   @unique
+  status      ReferralStatus @default(PENDING)
+  rewardGiven Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  referrer    User     @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred    User     @relation(fields: [referredId], references: [id], onDelete: Cascade)
+  
+  @@unique([referrerId, referredId])
+  @@map("referrals")
+}
+
+enum ReferralStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+  PAST_DUE
+}
+
+enum SubscriptionPlan {
+  MONTHLY
+  YEARLY
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
